@@ -7,6 +7,7 @@
 #include <linux/device.h>
 #include <linux/cdev.h>
 #include <linux/proc_fs.h>
+#include <linux/slab.h>
 
 #include <linux/string.h>
 #include <linux/uaccess.h>
@@ -17,7 +18,7 @@ static struct cdev c_dev;
 static struct class *cl;
 static struct proc_dir_entry* entry;
 
-static int result_array[64];
+static int *result_array;
 static int result_len = 0;
 
 static ssize_t proc_write(struct file *file, const char __user * ubuf, size_t count, loff_t* ppos) 
@@ -111,6 +112,9 @@ static struct file_operations mychdev_fops =
 static int __init ch_drv_init(void)
 {
     printk(KERN_INFO "Hello!\n");
+
+    result_array = (int*)kmalloc(64 * sizeof(int), GFP_KERNEL);
+
     entry = proc_create("var5", 0444, NULL, &fops);
     if (alloc_chrdev_region(&first, 0, 1, "ch_dev") < 0)
 	  {
