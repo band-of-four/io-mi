@@ -34,19 +34,13 @@ static ssize_t proc_read(struct file *file, char __user * ubuf, size_t count, lo
   int written = 0;
   int i = 0;
   for (i = 0; i < result_len; i++)
-    written += snprintf(&sarr[written], 640, "%d\n", result_array[i]);
+    written += snprintf(&sarr[written], count, "%d\n", result_array[i]);
   sarr[written] = 0;
 
   size_t len = strlen(sarr);
-  if (*ppos > 0 || count < len)
-  {
-    return 0;
-  }
-  if (copy_to_user(ubuf, sarr, len) != 0)
-  {
-    return -EFAULT;
-  }
-  *ppos = len;
+  if (*ppos > 0 || count < len) return 0;
+  if (copy_to_user(ubuf, sarr, len) != 0) return -EFAULT;
+  if (len != 0) *ppos = len;
   return len;
 }
 
