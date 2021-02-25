@@ -33,11 +33,13 @@ static ssize_t proc_read(struct file *file, char __user * ubuf, size_t count, lo
   	char sarr[count];
   	int written = 0;
   	int i = 0;
+  	size_t len;
+
   	for (i = 0; i < result_len; i++)
     		written += snprintf(&sarr[written], count, "%d\n", result_array[i]);
   	sarr[written] = 0;
 
-  	size_t len = strlen(sarr);
+       	len = strlen(sarr);
   	if (*ppos > 0 || count < len) return 0;
   	if (copy_to_user(ubuf, sarr, len) != 0) return -EFAULT;
   	if (len != 0) *ppos = len;
@@ -64,23 +66,23 @@ static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off
 
 static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, loff_t *off)
 {
-  	char *s = buf;
-  	s[len] = 0;
+  	//char *s = buf;
+  	//s[len] = 0;
 
-  	int res = len - 1;    
+       	//res = len - 1;    
 
-  	char *format = KERN_INFO "%s";
-  	char *format2 = KERN_INFO "len=%d";
-  	printk(format, s);
-  	printk(format2, (int)res);
+  	//char *format = KERN_INFO "%s";
+  	//char *format2 = KERN_INFO "len=%d";
+  	//printk(format, buf);
+  	//printk(format2, (int)res);
   
 
   	if (result_len < 64) {
-    		result_array[result_len++] = res;
+    		result_array[result_len++] = len - 1;
   	} else {
     		int i = 0;
     		for (; i < 63; ++i) result_array[i] = result_array[i+1];
-    		result_array[result_len] = res;
+    		result_array[result_len] = len - 1;
   	}
 
   	printk(KERN_INFO "Driver: write()\n");
