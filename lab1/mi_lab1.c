@@ -18,8 +18,37 @@ static struct cdev c_dev;
 static struct class *cl;
 static struct proc_dir_entry* entry;
 
-static int *result_array;
-static int result_len = 0;
+struct res_vector
+{
+	int *data;
+	size_t size;
+	size_t idx;
+};
+
+struct res_vector rv;
+
+struct res_vector rv_init(void)
+{
+	return (struct res_vector) {
+		.data = vmalloc(sizeof(int)),
+		.size = 1,
+		.idx = 0,
+	};
+}
+
+void rv_append(size_t value, struct res_vector *r_vector)
+{
+	if (r_vector->idx == r_vector->size - 1)
+	{
+		r_vector->size *= 2;
+		int* n_data = (int*)vmalloc(r_vector->size * sizeof(int));
+		memcpy(n_data, r_vector->data, r_vector->idx * sizeof(int));
+		vfree(r_vector->data);
+		r_vector->data = n_data;
+	}
+	r_vector->data[r_vector->idx++] = value;
+}
+
 
 static ssize_t proc_write(struct file *file, const char __user * ubuf, size_t count, loff_t* ppos) 
 {
@@ -35,8 +64,8 @@ static ssize_t proc_read(struct file *file, char __user * ubuf, size_t count, lo
   	int i = 0;
   	size_t len;
 
-  	for (i = 0; i < result_len; i++)
-    		written += snprintf(&sarr[written], count, "%d\n", result_array[i]);
+  	for (i = 0; i < rv.idx; i++)
+    		written += snprintf(&sarr[written], count, "%d\n", rv.data[i]);
   	sarr[written] = 0;
 
        	len = strlen(sarr);
@@ -76,7 +105,7 @@ static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, lof
   	//printk(format, buf);
   	//printk(format2, (int)res);
   
-
+/*
   	if (result_len < 64) {
     		result_array[result_len++] = len - 1;
   	} else {
@@ -86,6 +115,8 @@ static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, lof
   	}
 
   	printk(KERN_INFO "Driver: write()\n");
+	*/
+	rv_append(len - 1, &rv);
   	return len;
 }
 
@@ -107,8 +138,8 @@ static struct file_operations mychdev_fops =
 static int __init ch_drv_init(void)
 {
     	printk(KERN_INFO "Hello!\n");
-
-    	result_array = (int*)kmalloc(64 * sizeof(int), GFP_KERNEL);
+	
+	rv = rv_init();
 
     	entry = proc_create("var5", 0444, NULL, &fops);
     	if (alloc_chrdev_region(&first, 0, 1, "ch_dev") < 0) return -1;
