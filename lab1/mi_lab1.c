@@ -8,7 +8,6 @@
 #include <linux/cdev.h>
 #include <linux/proc_fs.h>
 #include <linux/slab.h>
-
 #include <linux/string.h>
 #include <linux/uaccess.h>
 #include <linux/init.h>
@@ -59,64 +58,44 @@ static ssize_t proc_write(struct file *file, const char __user * ubuf, size_t co
 
 static ssize_t proc_read(struct file *file, char __user * ubuf, size_t count, loff_t* ppos) 
 {
-  	char sarr[count];
+  	char sarr[512];
   	int written = 0;
   	int i = 0;
   	size_t len;
 
   	for (i = 0; i < rv.idx; i++)
-    		written += snprintf(&sarr[written], count, "%d\n", rv.data[i]);
+    		written += snprintf(&sarr[written], 512, "%d - %d\n", i+1, rv.data[i]);
   	sarr[written] = 0;
 
        	len = strlen(sarr);
   	if (*ppos > 0 || count < len) return 0;
   	if (copy_to_user(ubuf, sarr, len) != 0) return -EFAULT;
-  	if (len != 0) *ppos = len;
+  	*ppos = len;
   	return len;
 }
 
 static int my_open(struct inode *i, struct file *f)
 {
-  	printk(KERN_INFO "Driver: open()\n");
   	return 0;
 }
 
 static int my_close(struct inode *i, struct file *f)
 {
-  	printk(KERN_INFO "Driver: close()\n");
   	return 0;
 }
 
 static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off)
 {
-  	printk(KERN_INFO "Driver: read()\n");
-  	return 0;
+	int i = 0;
+  	for(i = 0; i < rv.idx; i++)
+		printk(KERN_DEBUG "%d - %d\n", i+1, rv.data[i]);
+	return 0;
 }
 
 static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, loff_t *off)
 {
-  	//char *s = buf;
-  	//s[len] = 0;
-
-       	//res = len - 1;    
-
-  	//char *format = KERN_INFO "%s";
-  	//char *format2 = KERN_INFO "len=%d";
-  	//printk(format, buf);
-  	//printk(format2, (int)res);
-  
-/*
-  	if (result_len < 64) {
-    		result_array[result_len++] = len - 1;
-  	} else {
-    		int i = 0;
-    		for (; i < 63; ++i) result_array[i] = result_array[i+1];
-    		result_array[result_len] = len - 1;
-  	}
-
-  	printk(KERN_INFO "Driver: write()\n");
-	*/
 	rv_append(len - 1, &rv);
+	*off += len;
   	return len;
 }
 
