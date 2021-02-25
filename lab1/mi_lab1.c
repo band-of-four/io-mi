@@ -64,7 +64,7 @@ static ssize_t proc_read(struct file *file, char __user * ubuf, size_t count, lo
   	size_t len;
 
   	for (i = 0; i < rv.idx; i++)
-    		written += snprintf(&sarr[written], 512, "%d - %d\n", i+1, rv.data[i]);
+    		written += snprintf(&sarr[written], 512 - written, "%d - %d\n", i+1, rv.data[i]);
   	sarr[written] = 0;
 
        	len = strlen(sarr);
