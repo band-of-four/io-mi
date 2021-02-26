@@ -12,10 +12,13 @@
 #include <linux/uaccess.h>
 #include <linux/init.h>
 
+void handle_command(char* input);
+const char* CHANGE_FILENAME =  "/change_filename ";
 static dev_t first;
 static struct cdev c_dev; 
 static struct class *cl;
 static struct proc_dir_entry* entry;
+
 
 struct res_vector
 {
@@ -110,8 +113,12 @@ static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, lof
 	char* user_input = (char*)vmalloc(len * sizeof(char));
 	memcpy(user_input, buf, len * sizeof(char));
 	user_input[len] = 0;
-	int res = count_letters(user_input);
-	rv_append(res, &rv);
+	if (*user_input == '/') {
+		handle_command(user_input);
+	} else {
+		int res = count_letters(user_input);
+		rv_append(res, &rv);
+	}
 	*off += len;
   	return len;
 }
@@ -130,6 +137,29 @@ static struct file_operations mychdev_fops =
   	.read = my_read,
   	.write = my_write
 };
+
+void handle_command(char* input){
+	int i = 0;
+	for (; i < 17; ++i) {
+		if (*input != CHANGE_FILENAME[i]) return;
+		input++;
+	}
+
+	while (*input == ' ') {
+		input++;
+	}
+
+	proc_remove(entry);
+
+	char* cur = input;
+	while(*cur != '\n') {
+		cur++;
+	} 
+	*cur = 0;
+	entry = proc_create(input, 0444, NULL, &fops);
+	printk(KERN_INFO "created new file '%s'\n", input);		
+}
+
  
 static int __init ch_drv_init(void)
 {
