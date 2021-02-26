@@ -58,7 +58,7 @@ dmesg
 
 Для выгрузки драйвера:
 
-```
+```bash
 sudo rmmod mi_lab1
 ```
 
@@ -66,11 +66,30 @@ sudo rmmod mi_lab1
 
 Запись данных в символьное устройство и чтение результата из файла `/proc/var5`:
 
+```bash
+vagrant@vagrant:~/code/io-mi/lab1$ sudo insmod mi_lab1.ko; sudo chmod 0666 /dev/mychdev
+vagrant@vagrant:~/code/io-mi/lab1$ echo "test " > /dev/mychdev 
+vagrant@vagrant:~/code/io-mi/lab1$ echo "test test " > /dev/mychdev 
+vagrant@vagrant:~/code/io-mi/lab1$ echo "test test test 42 666" > /dev/mychdev 
+vagrant@vagrant:~/code/io-mi/lab1$ cat /proc/var5 
+1 - 4
+2 - 8
+3 - 12
 
-![img1](resources/img1.jpg)
+```
 
 Запись данных в символьное устройство и чтение результата из кольцевого буфера:
 
-![img2](resources/img2.jpg)
-
-![img3](resources/img3.jpg)
+```bash
+vagrant@vagrant:~/code/io-mi/lab1$ sudo insmod mi_lab1.ko; sudo chmod 0666 /dev/mychdev
+vagrant@vagrant:~/code/io-mi/lab1$ echo "test " > /dev/mychdev 
+vagrant@vagrant:~/code/io-mi/lab1$ echo "test test " > /dev/mychdev 
+vagrant@vagrant:~/code/io-mi/lab1$ echo "test test test 42 666" > /dev/mychdev 
+vagrant@vagrant:~/code/io-mi/lab1$ cat /dev/mychdev
+vagrant@vagrant:~/code/io-mi/lab1$ dmesg
+...
+[ 2273.089620] Hello!
+[ 2503.070840] 1 - 4
+[ 2503.070844] 2 - 8
+[ 2503.070845] 3 - 12
+```
