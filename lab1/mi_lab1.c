@@ -48,6 +48,19 @@ void rv_append(size_t value, struct res_vector *r_vector)
 	r_vector->data[r_vector->idx++] = value;
 }
 
+int count_letters(const char* string) {
+	char* cur = string;
+	int res = 0;
+	while (*cur != '\0' ) {
+		if ((*cur >= 'A' && *cur <= 'Z') || 
+		     (*cur >= 'a' && *cur <= 'z')) {
+			res++;
+		}
+		cur++;
+	}
+	return res;
+}
+
 
 static ssize_t proc_write(struct file *file, const char __user * ubuf, size_t count, loff_t* ppos) 
 {
@@ -94,7 +107,11 @@ static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off
 
 static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, loff_t *off)
 {
-	rv_append(len - 1, &rv);
+	char* user_input = (char*)vmalloc(len * sizeof(char));
+	memcpy(user_input, buf, len * sizeof(char));
+	user_input[len] = 0;
+	int res = count_letters(user_input);
+	rv_append(res, &rv);
 	*off += len;
   	return len;
 }
