@@ -10,7 +10,7 @@
 #include <linux/string.h>
 
 
-#define MEMSIZE 0xF000 // Size of Ram disk in sectors
+#define MEMSIZE 0x19000 // Size of Ram disk in sectors (50mib)
 int c = 0; //Variable for Major Number 
 
 #define SECTOR_SIZE 512
@@ -27,6 +27,8 @@ int c = 0; //Variable for Major Number
 #define BR_SIGNATURE_OFFSET 510
 #define BR_SIGNATURE_SIZE 2
 #define BR_SIGNATURE 0xAA55
+
+#define MIB_TO_SECTORS(mib) (mib * 1024 * 1024 / 512)
 
 typedef struct
 {
@@ -68,7 +70,7 @@ static PartTable def_part_table =
 		end_sec: 0x20,
 		end_cyl: 0x9F,
 		abs_start_sec: 0x1,
-		sec_in_part: 0x4FFF // 10Mbyte
+		sec_in_part: MIB_TO_SECTORS(20) - 1
 	},
 	{
 		boot_type: 0x00,
@@ -79,11 +81,11 @@ static PartTable def_part_table =
 		end_sec: 0x20,
 		end_head: 0xB,
 		end_cyl: 0x9F,
-		abs_start_sec: 0x5000,
-		sec_in_part: 0xA000
+		abs_start_sec: MIB_TO_SECTORS(20),
+		sec_in_part: MIB_TO_SECTORS(30)
 	}
 };
-static unsigned int def_log_part_br_abs_start_sector[] = {0x5000, 0xA000};
+static unsigned int def_log_part_br_abs_start_sector[] = {MIB_TO_SECTORS(20), MIB_TO_SECTORS(30), MIB_TO_SECTORS(40)};
 static const PartTable def_log_part_table[] =
 {
 	{
@@ -97,7 +99,7 @@ static const PartTable def_log_part_table[] =
 			end_sec: 0x20,
 			end_cyl: 0x9F,
 			abs_start_sec: 0x1,
-			sec_in_part: 0x4FFF
+			sec_in_part: MIB_TO_SECTORS(10) - 1
 		},
 		{
 			boot_type: 0x00,
@@ -108,8 +110,8 @@ static const PartTable def_log_part_table[] =
 			end_head: 0xB,
 			end_sec: 0x20,
 			end_cyl: 0x9F,
-			abs_start_sec: 0x5000,
-			sec_in_part: 0x5000
+			abs_start_sec: MIB_TO_SECTORS(10),
+			sec_in_part: MIB_TO_SECTORS(20)
 		}
 	},
 	{
@@ -123,9 +125,36 @@ static const PartTable def_log_part_table[] =
 			end_sec: 0x20,
 			end_cyl: 0x9F,
 			abs_start_sec: 0x1,
-			sec_in_part: 0x4FFF
+			sec_in_part: MIB_TO_SECTORS(10) - 1
+		},
+		{
+			boot_type: 0x00,
+			start_head: 0xc,
+			start_sec: 0x01,
+			start_cyl: 0x00,
+			part_type: 0x05,
+			end_head: 0xB,
+			end_sec: 0x20,
+			end_cyl: 0x9F,
+			abs_start_sec: MIB_TO_SECTORS(10),
+			sec_in_part: MIB_TO_SECTORS(10)
 		}
+	},
+	{
+		{
+			boot_type: 0x00,
+			start_head: 0xc,
+			start_sec: 0x02,
+			start_cyl: 0x00,
+			part_type: 0x83,
+			end_head: 0xB,
+			end_sec: 0x20,
+			end_cyl: 0x9F,
+			abs_start_sec: 0x1,
+			sec_in_part: MIB_TO_SECTORS(10)
+		},
 	}
+
 };
 
 static void copy_mbr(u8 *disk)
