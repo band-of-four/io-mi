@@ -58,29 +58,32 @@ typedef PartEntry PartTable[4];
 #define cyl4size(s) ((s) / CYL_SIZE)
 
 
+#define PRM 0x83
+#define EXT 0x05
+
 static PartTable def_part_table =
 {
 	{
-		boot_type: 0x00,
+		boot_type: 0x0,
 		start_sec: 0x0,
-		start_head: 0x2,
+		start_head: 0x0,
 		start_cyl: 0x0,
-		part_type: 0x83,
-		end_head: 0x7,
-		end_sec: 0x20,
-		end_cyl: 0x9F,
+		part_type: PRM,
+		end_head: 0x0,
+		end_sec: 0x0,
+		end_cyl: 0x0,
 		abs_start_sec: 0x1,
 		sec_in_part: MIB_TO_SECTORS(20) - 1
 	},
 	{
-		boot_type: 0x00,
-		start_head: 0x8,
+		boot_type: 0x0,
+		start_head: 0x0,
 		start_sec: 0x1,
 		start_cyl: 0x0,
-		part_type: 0x05, // extended partition type
-		end_sec: 0x13,
-		end_head: 0x20,
-		end_cyl: 0x9F,
+		part_type: EXT, // extended partition type
+		end_sec: 0x0,
+		end_head: 0x0,
+		end_cyl: 0x0,
 		abs_start_sec: MIB_TO_SECTORS(20),
 		sec_in_part: MIB_TO_SECTORS(30)
 	}
@@ -91,52 +94,52 @@ static const PartTable def_log_part_table[] =
 {
 	{
 		{
-			boot_type: 0x00,
-			start_head: 0x8,
+			boot_type: 0x0,
+			start_head: 0x0,
 			start_sec: 0x2, 
 			start_cyl: 0x0, 
-			part_type: 0x83,
-			end_head: 0xB,
-			end_sec: 0x20,
-			end_cyl: 0x9F,
+			part_type: PRM,
+			end_head: 0x0,
+			end_sec: 0x0,
+			end_cyl: 0x0,
 			abs_start_sec: 0x1,
 			sec_in_part: MIB_TO_SECTORS(10) - 1
 		},
 		{
-			boot_type: 0x00,
-			start_head: 0xC,
-			start_sec: 0x01,
+			boot_type: 0x0,
+			start_head: 0x0,
+			start_sec: 0x1,
 			start_cyl: 0x00,
-			part_type: 0x05,
-			end_head: 0xF,
-			end_sec: 0x20,
-			end_cyl: 0x9F,
+			part_type: EXT,
+			end_head: 0x0,
+			end_sec: 0x0,
+			end_cyl: 0x0,
 			abs_start_sec: MIB_TO_SECTORS(10),
 			sec_in_part: MIB_TO_SECTORS(10)
 		}
 	},
 	{
 		{
-			boot_type: 0x00,
-			start_head: 0xC,
+			boot_type: 0x0,
+			start_head: 0x0,
 			start_sec: 0x02,
-			start_cyl: 0x00,
-			part_type: 0x83,
-			end_head: 0xF,
-			end_sec: 0x20,
-			end_cyl: 0x9F,
+			start_cyl: 0x0,
+			part_type: PRM,
+			end_head: 0x0,
+			end_sec: 0x0,
+			end_cyl: 0x0,
 			abs_start_sec: 0x1,
 			sec_in_part: MIB_TO_SECTORS(10) -1
 		},
 		{
-                        boot_type: 0x00,
-                        start_head: 0x10,
+                        boot_type: 0x0,
+                        start_head: 0x0,
                         start_sec: 0x01,
-                        start_cyl: 0x00,
-                        part_type: 0x05,
-                        end_head: 0x13,
-                        end_sec: 0x20,
-                        end_cyl: 0x9F,
+                        start_cyl: 0x0,
+                        part_type: EXT,
+                        end_head: 0x0,
+                        end_sec: 0x0,
+                        end_cyl: 0x0,
                         abs_start_sec: MIB_TO_SECTORS(20),
                         sec_in_part: MIB_TO_SECTORS(10)
                 },
@@ -144,14 +147,14 @@ static const PartTable def_log_part_table[] =
 	},
 	{
                 {
-                        boot_type: 0x00,
-                        start_head: 0x10,
+                        boot_type: 0x0,
+                        start_head: 0x0,
                         start_sec: 0x02,
-                        start_cyl: 0x00,
-                        part_type: 0x83,
-                        end_head: 0x13,
-                        end_sec: 0x20,
-                        end_cyl: 0x9F,
+                        start_cyl: 0x0,
+                        part_type: PRM,
+                        end_head: 0x0,
+                        end_sec: 0x0,
+                        end_cyl: 0x0,
                         abs_start_sec: 0x1,
                         sec_in_part: MIB_TO_SECTORS(10) -1
                 }
