@@ -9,10 +9,10 @@ do:
  	sudo mkfs.vfat -F16 /dev/mydisk5 && \
 	sudo mkfs.vfat -F16 /dev/mydisk6 && \
 	sudo mkfs.vfat -F16 /dev/mydisk7
-	sudo mount /dev/mydisk6 /mnt/mydisk1 && \
-	sudo mount /dev/mydisk6 /mnt/mydisk5 && \
+	sudo mount /dev/mydisk1 /mnt/mydisk1 && \
+	sudo mount /dev/mydisk5 /mnt/mydisk5 && \
   	sudo mount /dev/mydisk6 /mnt/mydisk6 && \
-  	sudo mount /dev/mydisk6 /mnt/mydisk7
+  	sudo mount /dev/mydisk7 /mnt/mydisk7
 rm:
 	sudo umount /mnt/mydisk1 && sudo umount /mnt/mydisk5 && sudo umount /mnt/mydisk6 && sudo umount /mnt/mydisk7
 	sudo rmmod main.ko
