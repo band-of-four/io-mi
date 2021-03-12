@@ -41,3 +41,21 @@
 ![image](https://user-images.githubusercontent.com/27426287/110922052-4ab55a00-8330-11eb-95f3-006ba9e35c4e.png)
 
 ## Профилирование
+
+Копирование между разделами виртуального диска (из mydisk1 в mydisk6) -- 4.8 MB/s:
+
+```bash
+root@vagrant:~# dd if=/dev/mydisk1 of=/dev/mydisk6 bs=512 count=30720 oflag=direct
+20480+0 records in
+20479+0 records out
+10485248 bytes (10 MB, 10 MiB) copied, 2.18378 s, 4.8 MB/s
+```
+
+Копирование из реального диска в виртуальный диск (из /dev/sda/ в mysidk6) -- 4.2 MB/s:
+
+```bash
+root@vagrant:~# dd if=/dev/sda of=/dev/mydisk6 bs=512 count=30720 oflag=direct
+20480+0 records in
+20479+0 records out
+10485248 bytes (10 MB, 10 MiB) copied, 2.49536 s, 4.2 MB/s
+```
