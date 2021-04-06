@@ -21,38 +21,32 @@ struct priv {
     struct net_device *parent;
 };
 
-static char check_frame(struct sk_buff *skb, unsigned char data_shift) {
-	unsigned char *user_data_ptr = NULL;
-    struct iphdr *ip = (struct iphdr *)skb_network_header(skb);
-    struct udphdr *udp = NULL;
-    int data_len = 0;
+static char check_frame(struct sk_buff *skb) {
+   unsigned char *user_data_ptr = NULL;
+   struct iphdr *ip = (struct iphdr *)skb_network_header(skb);
+   int data_len = 0;
 
-	if (IPPROTO_UDP == ip->protocol) {
-        udp = (struct udphdr*)((unsigned char*)ip + (ip->ihl * 4));
-        data_len = ntohs(udp->len) - sizeof(struct udphdr);
-        user_data_ptr = (unsigned char *)(skb->data + sizeof(struct iphdr)  + sizeof(struct udphdr)) + data_shift;
-        memcpy(data, user_data_ptr, data_len);
-        data[data_len] = '\0';
 
-        printk("Captured UDP datagram, saddr: %d.%d.%d.%d\n",
-                ntohl(ip->saddr) >> 24, (ntohl(ip->saddr) >> 16) & 0x00FF,
-                (ntohl(ip->saddr) >> 8) & 0x0000FF, (ntohl(ip->saddr)) & 0x000000FF);
-        printk("daddr: %d.%d.%d.%d\n",
-                ntohl(ip->daddr) >> 24, (ntohl(ip->daddr) >> 16) & 0x00FF,
-                (ntohl(ip->daddr) >> 8) & 0x0000FF, (ntohl(ip->daddr)) & 0x000000FF);
+   data_len = ntohs(ip->tot_len) - sizeof(struct iphdr);
 
-    	printk(KERN_INFO "Data length: %d. Data:", data_len);
-        printk("%s", data);
-        return 1;
+   if (data_len <= 70) return 0; // according to task do not handle packets
+   				 // less than 70 bytes
 
-    }
-    return 0;
+   printk("Captured IP packet, saddr: %d.%d.%d.%d\n",
+         ntohl(ip->saddr) >> 24, (ntohl(ip->saddr) >> 16) & 0x00FF,
+         (ntohl(ip->saddr) >> 8) & 0x0000FF, (ntohl(ip->saddr)) & 0x000000FF);
+   printk("daddr: %d.%d.%d.%d\n",
+         ntohl(ip->daddr) >> 24, (ntohl(ip->daddr) >> 16) & 0x00FF,
+         (ntohl(ip->daddr) >> 8) & 0x0000FF, (ntohl(ip->daddr)) & 0x000000FF);
+
+   printk(KERN_INFO "Data length: %d. Data:", data_len);
+   return 1;
 }
 
 static rx_handler_result_t handle_frame(struct sk_buff **pskb) {
    // if (child) {
         
-        	if (check_frame(*pskb, 0)) {
+        	if (check_frame(*pskb)) {
                 stats.rx_packets++;
                 stats.rx_bytes += (*pskb)->len;
             }
@@ -77,7 +71,8 @@ static int stop(struct net_device *dev) {
 static netdev_tx_t start_xmit(struct sk_buff *skb, struct net_device *dev) {
     struct priv *priv = netdev_priv(dev);
 
-    if (check_frame(skb, 14)) {
+    printk(KERN_INFO "Packet send");
+    if (check_frame(skb)) {
         stats.tx_packets++;
         stats.tx_bytes += skb->len;
     }
