@@ -29,7 +29,6 @@ static ssize_t proc_read(struct file *file, char __user * ubuf, size_t count, lo
 {
   	char sarr[512];
   	int written = 0;
-  	int i = 0;
   	size_t len;
 
     written += snprintf(&sarr[written], 512 - written, "Processed: %d; Dropped: %d\n", processed_packets, dropped_packets);
@@ -53,20 +52,22 @@ static char check_frame(struct sk_buff *skb) {
    int data_len = 0;
    data_len = ntohs(ip->tot_len) - sizeof(struct iphdr);
 
-   if (data_len <= 70) { // according to task do not handle packets
-     dropped_packets++;  // less than 70 bytes
+   if (data_len > 70) { // according to task do not handle packets
+     dropped_packets++;  // more than 70 bytes
      return 0;
    }
    
    processed_packets++;
-   printk("======================\nCaptured IP packet, saddr: %d.%d.%d.%d\n",
+   printk(KERN_INFO "======================");
+   printk(KERN_INFO "Captured IP packet, saddr: %d.%d.%d.%d\n",
          ntohl(ip->saddr) >> 24, (ntohl(ip->saddr) >> 16) & 0x00FF,
          (ntohl(ip->saddr) >> 8) & 0x0000FF, (ntohl(ip->saddr)) & 0x000000FF);
-   printk("daddr: %d.%d.%d.%d\n",
+   printk(KERN_INFO "daddr: %d.%d.%d.%d\n",
          ntohl(ip->daddr) >> 24, (ntohl(ip->daddr) >> 16) & 0x00FF,
          (ntohl(ip->daddr) >> 8) & 0x0000FF, (ntohl(ip->daddr)) & 0x000000FF);
 
-   printk(KERN_INFO "Data length: %d.\n======================", data_len);
+   printk(KERN_INFO "Size: %d.", data_len);
+   printk(KERN_INFO "======================");
    return 1;
 }
 
