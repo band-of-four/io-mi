@@ -14,16 +14,80 @@
 
 Во время работы драйвер выводит в кольцевой буфер информацию о пакетах, длина которых меньше 70 байт. Формат сообщения:
 
-wip
+```
+[ 3168.568998] ======================
+[ 3168.569000] Captured IP packet, saddr: 127.0.0.1
+[ 3168.569002] daddr: 127.0.0.1
+[ 3168.569002] Size: 18.
+[ 3168.569003] ======================
+```
+
+Где `saddr`: ip адрес отправителя;
+`daddr`: ip адрес получателя;
+`Size`: размер пакета
+
+При чтении файла `/proc/var5` выводится информация о количестве обработанных и отброшенных пакетов:
+
+```
+Processed: 52; Dropped: 10
+```
+
+Где `Processed`: количество пакетов, которые подошли по условию;
+`Dropped`: количество пакетов, которые были отброшены.
 
 ## Инструкция по сборке
 
-...
+В корневой директории `lab3` выполнить команду `sudo make`
 
 ## Инструкция пользователя
 
-...
+Для загрузки модуля выполнить команду `sudo insmod virt_net_if.ko`
+
+Для проверки кольцевого буфера в отдельном окне консоли выполнить команду: `dmesg -w`
+
+Для проверки содержимого служебного файла: `cat /proc/var5`
+
+Для удаления модуля: `sudo rmmod virt_net_if`
 
 ## Примеры использования
 
-...
+Для того, чтобы драйвер начал работать, необходимо обеспечить трафик на интерфейсе `lo`, имеющем адрес `127.0.0.1`.
+
+Воспользуемся для этого командой `ping`. После загрузки модуля необходимо выполнить:
+
+```bash
+ping -s N 127.0.0.1
+```
+
+Где N - размер пакета. Если N <= 70, пакеты будут обрабатываться драйвером и учитываться как `Processed`, иначе - как `Dropped`.
+
+Пример:
+
+```bash
+sudo make
+sudo insmod virt_net_if.ko
+ping -s 200 127.0.0.1
+PING 127.0.0.1 (127.0.0.1) 200(228) bytes of data.
+208 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.024 ms
+208 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.031 ms
+208 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.032 ms
+208 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=0.030 ms
+208 bytes from 127.0.0.1: icmp_seq=5 ttl=64 time=0.028 ms
+^C
+--- 127.0.0.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4080ms
+rtt min/avg/max/mdev = 0.024/0.029/0.032/0.003 ms
+ping -s 20 127.0.0.1
+PING 127.0.0.1 (127.0.0.1) 20(48) bytes of data.
+28 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.044 ms
+28 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.044 ms
+28 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.039 ms
+28 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=0.041 ms
+28 bytes from 127.0.0.1: icmp_seq=5 ttl=64 time=0.038 ms
+^C
+--- 127.0.0.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4093ms
+rtt min/avg/max/mdev = 0.038/0.041/0.044/0.004 ms
+cat /proc/var5
+Processed: 27; Dropped: 10
+```
