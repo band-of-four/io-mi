@@ -7,53 +7,77 @@
 #include <net/arp.h>
 #include <linux/ip.h>
 #include <linux/udp.h>
+#include <linux/proc_fs.h>
 
-static char* link = "enp0s3";
+static char* link = "lo";
 module_param(link, charp, 0);
 
 static char* ifname = "vni%d";
-static unsigned char data[1500];
 
 static struct net_device_stats stats;
+static struct proc_dir_entry* entry;
 
 static struct net_device *child = NULL;
 struct priv {
     struct net_device *parent;
 };
 
+int processed_packets = 0;
+int dropped_packets = 0;
+
+static ssize_t proc_read(struct file *file, char __user * ubuf, size_t count, loff_t* ppos) 
+{
+  	char sarr[512];
+  	int written = 0;
+  	int i = 0;
+  	size_t len;
+
+    written += snprintf(&sarr[written], 512 - written, "Processed: %d; Dropped: %d\n", processed_packets, dropped_packets);
+  	sarr[written] = 0;
+
+    len = strlen(sarr);
+  	if (*ppos > 0 || count < len) return 0;
+  	if (copy_to_user(ubuf, sarr, len) != 0) return -EFAULT;
+  	*ppos = len;
+  	return len;
+}
+
+
+static struct file_operations fops = {
+	.owner = THIS_MODULE,
+	.read = proc_read,
+};
+
 static char check_frame(struct sk_buff *skb) {
-   unsigned char *user_data_ptr = NULL;
    struct iphdr *ip = (struct iphdr *)skb_network_header(skb);
    int data_len = 0;
-
-
    data_len = ntohs(ip->tot_len) - sizeof(struct iphdr);
 
-   if (data_len <= 70) return 0; // according to task do not handle packets
-   				 // less than 70 bytes
-
-   printk("Captured IP packet, saddr: %d.%d.%d.%d\n",
+   if (data_len <= 70) { // according to task do not handle packets
+     dropped_packets++;  // less than 70 bytes
+     return 0;
+   }
+   
+   processed_packets++;
+   printk("======================\nCaptured IP packet, saddr: %d.%d.%d.%d\n",
          ntohl(ip->saddr) >> 24, (ntohl(ip->saddr) >> 16) & 0x00FF,
          (ntohl(ip->saddr) >> 8) & 0x0000FF, (ntohl(ip->saddr)) & 0x000000FF);
    printk("daddr: %d.%d.%d.%d\n",
          ntohl(ip->daddr) >> 24, (ntohl(ip->daddr) >> 16) & 0x00FF,
          (ntohl(ip->daddr) >> 8) & 0x0000FF, (ntohl(ip->daddr)) & 0x000000FF);
 
-   printk(KERN_INFO "Data length: %d. Data:", data_len);
+   printk(KERN_INFO "Data length: %d.\n======================", data_len);
    return 1;
 }
 
 static rx_handler_result_t handle_frame(struct sk_buff **pskb) {
-   // if (child) {
         
-        	if (check_frame(*pskb)) {
-                stats.rx_packets++;
-                stats.rx_bytes += (*pskb)->len;
-            }
-        (*pskb)->dev = child;
-        return RX_HANDLER_ANOTHER;
-    //}   
-    return RX_HANDLER_PASS; 
+	if (check_frame(*pskb)) {
+        stats.rx_packets++;
+        stats.rx_bytes += (*pskb)->len;
+    }
+    (*pskb)->dev = child;
+    return RX_HANDLER_ANOTHER;
 } 
 
 static int open(struct net_device *dev) {
@@ -71,7 +95,6 @@ static int stop(struct net_device *dev) {
 static netdev_tx_t start_xmit(struct sk_buff *skb, struct net_device *dev) {
     struct priv *priv = netdev_priv(dev);
 
-    printk(KERN_INFO "Packet send");
     if (check_frame(skb)) {
         stats.tx_packets++;
         stats.tx_bytes += skb->len;
@@ -111,6 +134,7 @@ static void setup(struct net_device *dev) {
 int __init vni_init(void) {
     int err = 0;
     struct priv *priv;
+    entry = proc_create("var5", 0444, NULL, &fops);
     child = alloc_netdev(sizeof(struct priv), ifname, NET_NAME_UNKNOWN, setup);
     if (child == NULL) {
         printk(KERN_ERR "%s: allocate error", THIS_MODULE->name);
